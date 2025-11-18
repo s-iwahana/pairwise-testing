@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ペアワイズ法テストケース生成ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 2rem;
+        }
+
+        .factor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .factor-item {
+            background: linear-gradient(135deg, #f6f8fb 0%, #ffffff 100%);
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .factor-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .factor-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .factor-name-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .factor-name-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .delete-factor-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .delete-factor-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .levels-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .level-input {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            min-width: 120px;
+            transition: all 0.3s;
+        }
+
+        .level-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .level-item {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .delete-level-btn {
+            background: #f87171;
+            color: white;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .delete-level-btn:hover {
+            background: #ef4444;
+        }
+
+        .add-level-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .add-level-btn:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .add-factor-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .add-factor-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 2rem;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6);
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.show {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .results-count {
+            background: #f3f4f6;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .reset-btn, .download-btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .reset-btn {
+            background: #6b7280;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #4b5563;
+        }
+
+        .download-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .download-btn:hover {
+            background: #059669;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 ペアワイズ法テストケース生成ツール</h1>
+            <p>因子と水準を入力して、効率的なテストケースを自動生成</p>
+        </div>
+
+        <div id="inputSection" class="card">
+            <div id="factorList" class="factor-list"></div>
+            <button class="add-factor-btn" onclick="addFactor()">➕ 因子を追加</button>
+            <button class="generate-btn" onclick="generateTestCases()">🚀 テストケースを生成</button>
+        </div>
+
+        <div id="resultsSection" class="results-container card">
+            <div class="results-header">
+                <h2 class="results-title">生成されたテストケース</h2>
+                <div class="results-count" id="resultsCount">0件</div>
+            </div>
+            <div class="button-group">
+                <button class="reset-btn" onclick="resetToInput()">🔙 入力画面に戻る</button>
+                <button class="download-btn" onclick="downloadCSV()">📥 CSVダウンロード</button>
+            </div>
+            <div class="table-container">
+                <table id="resultsTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let factors = [
+            { id: '1', name: 'ブラウザ', levels: ['Chrome', 'Safari', 'FireFox', 'Edge'] },
+            { id: '2', name: 'OS', levels: ['Windows', 'macOS', 'iOS', 'Android'] }
+        ];
+        let nextId = 3;
+
+        function renderFactors() {
+            const factorList = document.getElementById('factorList');
+            factorList.innerHTML = '';
+
+            factors.forEach((factor, index) => {
+                const factorDiv = document.createElement('div');
+                factorDiv.className = 'factor-item';
+                factorDiv.innerHTML = `
+                    <div class="factor-header">
+                        <div class="factor-number">${index + 1}</div>
+                        <input 
+                            type="text" 
+                            class="factor-name-input" 
+                            value="${factor.name}"
+                            placeholder="因子名を入力"
+                            onchange="updateFactorName('${factor.id}', this.value)"
+                        />
+                        ${factors.length > 1 ? `<button class="delete-factor-btn" onclick="deleteFactor('${factor.id}')">🗑️ 削除</button>` : ''}
+                    </div>
+                    <div class="levels-container" id="levels-${factor.id}"></div>
+                    <button class="add-level-btn" onclick="addLevel('${factor.id}')">➕ 水準を追加</button>
+                `;
+                factorList.appendChild(factorDiv);
+
+                renderLevels(factor.id);
+            });
+        }
+
+        function renderLevels(factorId) {
+            const factor = factors.find(f => f.id === factorId);
+            const levelsContainer = document.getElementById(`levels-${factorId}`);
+            levelsContainer.innerHTML = '';
+
+            factor.levels.forEach((level, index) => {
+                const levelDiv = document.createElement('div');
+                levelDiv.className = 'level-item';
+                levelDiv.innerHTML = `
+                    <input 
+                        type="text" 
+                        class="level-input" 
+                        value="${level}"
+                        placeholder="水準${index + 1}"
+                        onchange="updateLevel('${factorId}', ${index}, this.value)"
+                    />
+                    ${factor.levels.length > 1 ? `<button class="delete-level-btn" onclick="deleteLevel('${factorId}', ${index})">✕</button>` : ''}
+                `;
+                levelsContainer.appendChild(levelDiv);
+            });
+        }
+
+        function addFactor() {
+            factors.push({
+                id: String(nextId++),
+                name: `因子${factors.length + 1}`,
+                levels: ['水準1', '水準2']
+            });
+            renderFactors();
+        }
+
+        function deleteFactor(factorId) {
+            if (factors.length > 1) {
+                factors = factors.filter(f => f.id !== factorId);
+                renderFactors();
+            }
+        }
+
+        function updateFactorName(factorId, newName) {
+            const factor = factors.find(f => f.id === factorId);
+            if (factor) {
+                factor.name = newName;
+            }
+        }
+
+        function addLevel(factorId) {
+            const factor = factors.find(f => f.id === factorId);
+            if (factor) {
+                factor.levels.push(`水準${factor.levels.length + 1}`);
+                renderLevels(factorId);
+            }
+        }
+
+        function deleteLevel(factorId, levelIndex) {
+            const factor = factors.find(f => f.id === factorId);
+            if (factor && factor.levels.length > 1) {
+                factor.levels.splice(levelIndex, 1);
+                renderLevels(factorId);
+            }
+        }
+
+        function updateLevel(factorId, levelIndex, newValue) {
+            const factor = factors.find(f => f.id === factorId);
+            if (factor) {
+                factor.levels[levelIndex] = newValue;
+            }
+        }
+
+        function generatePairwiseTestCases(factors) {
+            if (factors.length === 0) return [];
+
+            const testCases = [];
+            
+            // 最初の因子の各水準について基本的なテストケースを作成
+            const baseFactorLevels = factors[0].levels;
+            
+            for (const level of baseFactorLevels) {
+                const testCase = {};
+                testCase[factors[0].name] = level;
+                
+                // 他の因子については、まだカバーされていない組み合わせを選択
+                for (let i = 1; i < factors.length; i++) {
+                    const availableLevels = factors[i].levels;
+                    testCase[factors[i].name] = availableLevels[0];
+                }
+                
+                testCases.push(testCase);
+            }
+            
+            // 全てのペアの組み合わせをカバーするための追加テストケース
+            for (let i = 0; i < factors.length; i++) {
+                for (let j = i + 1; j < factors.length; j++) {
+                    const factor1 = factors[i];
+                    const factor2 = factors[j];
+                    
+                    // このペアの全ての組み合わせ
+                    for (const level1 of factor1.levels) {
+                        for (const level2 of factor2.levels) {
+                            // この組み合わせが既存のテストケースでカバーされているかチェック
+                            const covered = testCases.some(
+                                (tc) => tc[factor1.name] === level1 && tc[factor2.name] === level2
+                            );
+                            
+                            if (!covered) {
+                                // 新しいテストケースを作成
+                                const newTestCase = {};
+                                
+                                for (const factor of factors) {
+                                    if (factor.id === factor1.id) {
+                                        newTestCase[factor.name] = level1;
+                                    } else if (factor.id === factor2.id) {
+                                        newTestCase[factor.name] = level2;
+                                    } else {
+                                        // 他の因子は最初の水準を使用
+                                        newTestCase[factor.name] = factor.levels[0];
+                                    }
+                                }
+                                
+                                testCases.push(newTestCase);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return testCases;
+        }
+
+        function generateTestCases() {
+            const testCases = generatePairwiseTestCases(factors);
+            displayResults(testCases);
+        }
+
+        function displayResults(testCases) {
+            document.getElementById('inputSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.add('show');
+
+            document.getElementById('resultsCount').textContent = `${testCases.length}件`;
+
+            // テーブルヘッダーを作成
+            const tableHead = document.getElementById('tableHead');
+            tableHead.innerHTML = '<tr><th>No.</th>' + 
+                factors.map(f => `<th>${f.name}</th>`).join('') + 
+                '</tr>';
+
+            // テーブルボディを作成
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = testCases.map((tc, index) => 
+                `<tr>
+                    <td><strong>${index + 1}</strong></td>
+                    ${factors.map(f => `<td>${tc[f.name]}</td>`).join('')}
+                </tr>`
+            ).join('');
+
+            window.currentTestCases = testCases;
+        }
+
+        function resetToInput() {
+            document.getElementById('inputSection').classList.remove('hidden');
+            document.getElementById('resultsSection').classList.remove('show');
+        }
+
+        function downloadCSV() {
+            const testCases = window.currentTestCases;
+            if (!testCases || testCases.length === 0) return;
+
+            // CSVヘッダー
+            let csv = 'No.,' + factors.map(f => f.name).join(',') + '\n';
+
+            // CSVデータ
+            testCases.forEach((tc, index) => {
+                csv += `${index + 1},` + factors.map(f => tc[f.name]).join(',') + '\n';
+            });
+
+            // ダウンロード
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'pairwise_testcases.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 初期表示
+        renderFactors();
+    </script>
+</body>
+</html>
